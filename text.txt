@@ -1,0 +1,111 @@
+// All game variables
+let rotationSpeed = 0; // initial speed
+const rotationBoost = 50; // degrees added per click
+const friction = 0.98; // slow it down gradually (optional)
+let isRotating = false;
+let bgMusicStarted = false;
+
+
+// add a Player in the center
+const sword = add([
+    sprite("sword"),
+    pos(center()),
+    anchor("botleft"),
+    scale(0.15),
+    area(),
+    rotate(0),
+]);
+
+// Enemy Spwan
+function getRandomEdgePosition() {
+    const w = width();
+    const h = height();
+    const edge = choose(["top", "bottom", "left", "right"]);
+
+    if (edge === "top") return vec2(rand(0, w), 0);
+    if (edge === "bottom") return vec2(rand(0, w), h);
+    if (edge === "left") return vec2(0, rand(0, h));
+    if (edge === "right") return vec2(w, rand(0, h));
+}
+function spawnEnemy() {
+    const spawnPos = getRandomEdgePosition();
+    const centerPos = center();
+    const direction = centerPos.sub(spawnPos).unit();
+
+    const enemy = add([
+        sprite("enemy"),
+        pos(spawnPos),
+        anchor("center"),
+        scale(0.5),
+        area(),
+        {
+            dir: direction,
+            speed: 100,
+            stopped: false,
+        },
+        "enemy"
+    ]);
+    enemy.play("walk")
+
+    // 🔁 Flip sprite if coming from the right
+    if (enemy.dir.x < 0) {
+        enemy.flipX = true;
+    }
+    // Enemy update loop
+    enemy.onUpdate(() => {
+        if (!enemy.stopped) {
+            enemy.move(enemy.dir.scale(enemy.speed));
+
+            // Stop if close to center
+            if (enemy.pos.dist(centerPos) < 10) {
+                enemy.stop("walk")
+                enemy.stopped = true;
+                enemy.speed = 0;
+            }
+        }
+    });
+}
+
+loop(4, () => {
+    for (let i = 0; i < 5; i++) {
+        spawnEnemy();
+    }
+});
+
+
+
+
+// Rotate Sword when click
+onClick(() => {
+    if (!bgMusicStarted) {
+        play("bg", {
+            loop: true,
+            volume: 0.5,
+        });
+        bgMusicStarted = true;
+    }
+    rotationSpeed += rotationBoost;
+    isRotating = true;
+    wait(0.5, () => {
+        isRotating = false;
+    });
+});
+
+onUpdate(() => {
+    sword.angle += rotationSpeed * dt();
+    rotationSpeed *= friction; // gradually reduce speed
+});
+
+// Collide detection
+sword.onCollideUpdate("enemy", (e) => {
+
+    if (isRotating) {
+        destroy(e);
+        shake(10)
+        addKaboom(e.pos);
+        play("die", {
+            volume: 1,
+        });
+    }
+
+});
