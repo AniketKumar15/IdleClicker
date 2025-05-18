@@ -109,7 +109,7 @@ scene("start", () => {
     // Add game title or name in the center
     const title = add([
         text("Sword Defense", {
-            size: 50,
+            size: 30,
         }),
         pos(center().x, center().y - 40),
         anchor("center"),
@@ -809,6 +809,6 @@ scene("shop", () => {
 });
 
 window.addEventListener("resize", () => {
-    go("start");
+
 });
 
