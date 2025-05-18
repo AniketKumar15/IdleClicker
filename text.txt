@@ -109,3 +109,21 @@ sword.onCollideUpdate("enemy", (e) => {
     }
 
 });
+
+
+
+
+
+768*98
+
+{ name: "Basic Sword", sprite: "sword", price: 0 },
+        { name: "Crimson Fang Sword", sprite: "sword1", price: 200 },
+        { name: "Iron Hunter Sword", sprite: "sword2", price: 300 },
+        { name: "Golden Handle Sword", sprite: "sword3", price: 300 },
+        { name: "Golden Saber Sword", sprite: "sword4", price: 300 },
+        { name: "Wide Face Sword", sprite: "sword5", price: 300 },
+        { name: "Black Kong Sword", sprite: "sword6", price: 300 },
+        { name: "", sprite: "sword7", price: 300 },
+        { name: "Red Blade", sprite: "sword8", price: 300 },
+        { name: "Red Blade", sprite: "sword9", price: 300 },
+        { name: "Red Blade", sprite: "sword10", price: 300 },

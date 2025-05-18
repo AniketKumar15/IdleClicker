@@ -5,24 +5,48 @@ kaboom({
     height: window.innerHeight,
     scale: 1,
     stretch: true,
-    background: [44, 204, 222]
+    background: [0, 0, 0]
 });
-
 // Loading All Images
 loadSprite("sword", "Image/ttrpg_legacy_swords_1.0/sword_04.png");
+loadSprite("sword1", "Image/ttrpg_legacy_swords_1.0/sword_05.png");
+loadSprite("sword2", "Image/ttrpg_legacy_swords_1.0/sword_11.png");
+loadSprite("sword3", "Image/ttrpg_legacy_swords_1.0/sword_48.png");
+loadSprite("sword4", "Image/ttrpg_legacy_swords_1.0/sword_15.png");
+loadSprite("sword5", "Image/ttrpg_legacy_swords_1.0/sword_17.png");
+loadSprite("sword6", "Image/ttrpg_legacy_swords_1.0/sword_20.png");
+loadSprite("sword7", "Image/ttrpg_legacy_swords_1.0/sword_25.png");
+loadSprite("sword8", "Image/ttrpg_legacy_swords_1.0/sword_29.png");
+loadSprite("sword9", "Image/ttrpg_legacy_swords_1.0/sword_27.png");
+loadSprite("sword10", "Image/ttrpg_legacy_swords_1.0/sword_28.png");
+
+
 loadSprite("money", "Image/money.png");
 loadSprite("heart", "Image/heart.png");
-loadSprite("enemy", "Image/Christmas_Gingerbread_Move.png", {
-    sliceX: 6, // number of frames horizontally
-    sliceY: 1, // number of rows
-    anims: {
-        walk: {
-            from: 0,
-            to: 3,
-            speed: 10,
-            loop: true,
+loadSprite("floor", "Image/WallsTileSets.png");
+// loadSprite("floor", "Image/cartoon-style-stone-texture_1110-877.jpg");
+// Enemies Sprites
+// Enemy sprite images
+let enemyImages = [
+    "Image/Christmas_Gingerbread_Move.png",
+    "Image/Christmas_Devil_Move.png",
+    "Image/Christmas_Slime_Move.png",
+];
+
+// Load both enemy sprites with the same animation
+enemyImages.forEach((img, i) => {
+    loadSprite(`enemy_${i}`, img, {
+        sliceX: 6,
+        sliceY: 1,
+        anims: {
+            walk: {
+                from: 0,
+                to: 3,
+                speed: 10,
+                loop: true,
+            },
         },
-    },
+    });
 });
 
 // Loading All Music
@@ -32,22 +56,68 @@ loadSound("upgrage", "./Audio/power-up-sparkle-1-177983.mp3");
 loadSound("Notupgrage", "./Audio/wrongSound.wav");
 loadSound("gameOverSound", "./Audio/game-over-31-179699.mp3");
 
+let bgm = null;
+function createTiledFloor() {
+    const tileSize = 64;
+    const cols = Math.ceil(width() / tileSize);
+    const rows = Math.ceil(height() / tileSize);
 
+    for (let y = 0; y < rows; y++) {
+        for (let x = 0; x < cols; x++) {
+            add([
+                sprite("floor"),
+                pos(x * tileSize, y * tileSize),
+                scale(2),
+                z(-100), // ✅ Use z-index to push to background
+            ]);
+        }
+    }
+}
 // START SCENE -> The main menu Where the game start
 scene("start", () => {
-    // Add game title or name in the center
+
+    createTiledFloor();
+
+    // Show the current money on the start menu
+    let moneyValue = 0;
+    const savedScore = localStorage.getItem("Money");
+    if (savedScore !== null) {
+        moneyValue = parseInt(savedScore);
+    }
+
+    // Money UI in Start Scene
+    const scorePos = vec2(24, 24);
+
     add([
+        rect(140, 40, { radius: 10 }),
+        pos(scorePos),
+        color(30, 30, 30),
+    ]);
+
+    add([
+        sprite("money"),
+        pos(scorePos.x + 10, scorePos.y + 8),
+        scale(0.05),
+    ]);
+
+    add([
+        text(moneyValue.toString(), { size: 24 }),
+        pos(scorePos.x + 50, scorePos.y + 8),
+        color(255, 215, 0),
+    ]);
+
+    // Add game title or name in the center
+    const title = add([
         text("Sword Defense", {
-            size: 32,
+            size: 50,
         }),
         pos(center().x, center().y - 40),
         anchor("center"),
     ]);
-
     // Start Game Button
     const startBtn = add([
         rect(160, 40, { radius: 8 }),
-        pos(center()),
+        pos(center().x, center().y + 50),
         color(0, 0.6, 1),
         area(),
         "startBtn",
@@ -74,14 +144,44 @@ scene("start", () => {
 
     // When Click on the btn load the game scene
     onClick("startBtn", () => {
-        play("bg", { loop: true, volume: 0.5 });
+        if (!bgm) {
+            bgm = play("bg", { loop: true, volume: 0.5 });
+        }
         go("game");
+    });
+
+    // Shop Button
+    const shopBtn = add([
+        rect(160, 40, { radius: 8 }),
+        pos(center().x, center().y + 110),
+        color(0.5, 0.2, 1),
+        area(),
+        "shopBtn",
+        anchor("center"),
+    ]);
+
+    add([
+        text("Shop", { size: 20 }),
+        pos(shopBtn.pos),
+        anchor("center"),
+        color(255, 255, 255),
+    ]);
+
+    shopBtn.onHoverUpdate(() => {
+        shopBtn.scale = vec2(1.1);
+        setCursor("pointer");
+    });
+    shopBtn.onHoverEnd(() => {
+        shopBtn.scale = vec2(1);
+    });
+    onClick("shopBtn", () => {
+        go("shop");
     });
 });
 
 // Actual Game scene
 scene("game", () => {
-
+    createTiledFloor();
     // a simple score counter or Money
     const scorePos = vec2(24, 24);   // Container position
 
@@ -179,8 +279,9 @@ scene("game", () => {
 
 
     // add a Player in the center
+    const selectedSword = localStorage.getItem("selectedSword") || "sword";
     const sword = add([
-        sprite("sword"),
+        sprite(selectedSword),
         pos(center()),
         anchor("botleft"),
         scale(0.1),
@@ -215,10 +316,10 @@ scene("game", () => {
         const direction = centerPos.sub(spawnPos).unit();
 
         const enemy = add([
-            sprite("enemy"),
+            sprite("enemy_" + randi(0, enemyImages.length)),
             pos(spawnPos),
             anchor("center"),
-            scale(0.5),
+            scale(0.7),
             area(),
             {
                 dir: direction,
@@ -272,7 +373,7 @@ scene("game", () => {
         sword.angle += rotationSpeed * dt();
         rotationSpeed *= friction; // gradually reduce speed
 
-        // ✅ Trigger game over only once
+        // Trigger game over only once
         if (!isGameOver && playerHelth <= 0) {
             isGameOver = true; // prevent re-triggering
 
@@ -299,7 +400,7 @@ scene("game", () => {
         }
 
         play("die", { volume: 1 });
-        shake(10);
+        shake(2);
     }
     // Update score
     function updateScore(newScore) {
@@ -483,6 +584,17 @@ scene("game", () => {
 
 
     showUpgradeUI();
+
+    // Back button
+    const backBtn = add([
+        text("← Back", { size: 24 }),
+        pos(30, height() - 50),
+        area(),
+    ]);
+
+    backBtn.onClick(() => {
+        go("start");
+    });
     // Adding Save Logic using local stroage
     setInterval(() => {
         localStorage.setItem("Money", moneyValue.toString());
@@ -509,10 +621,192 @@ scene("gameover", () => {
 
     restart.onClick(() => {
         // localStorage.clear()
-        go("game");
+        window.location.reload();
     });
 });
 
+scene("shop", () => {
+    destroyAll();
+
+    let moneyValue = parseInt(localStorage.getItem("Money") || "0");
+    const scorePos = vec2(24, 24);
+
+    add([
+        rect(140, 40, { radius: 10 }),
+        pos(scorePos),
+        color(30, 30, 30),
+        z(20),
+    ]);
+
+    add([
+        sprite("money"),
+        pos(scorePos.x + 10, scorePos.y + 8),
+        scale(0.05),
+        z(20),
+    ]);
+
+    const moneyText = add([
+        text(moneyValue.toString(), { size: 24 }),
+        pos(scorePos.x + 50, scorePos.y + 8),
+        color(255, 215, 0),
+        z(20),
+    ]);
+
+    add([
+        rect(width(), 80),
+        pos(0, 0),
+        color(20, 20, 40),
+        z(10),
+    ]);
+    add([
+        text("Sword Skins Shop", { size: 40 }),
+        pos(center().x, 40),
+        anchor("center"),
+        z(20),
+    ]);
+
+    // Get selected & owned swords from localStorage
+    let selectedSword = localStorage.getItem("selectedSword") || "sword";
+    let ownedSwords = JSON.parse(localStorage.getItem("ownedSwords") || '["sword"]');
+    const swords = [
+        { name: "Basic Sword", sprite: "sword", price: 0 },
+        { name: "Crimson Fang Sword", sprite: "sword1", price: 200 },
+        { name: "Sharp Niddle Sword", sprite: "sword2", price: 300 },
+        { name: "Chain Saw Sword", sprite: "sword3", price: 300 },
+        { name: "Venomous Dagger", sprite: "sword4", price: 300 },
+        { name: "Wide Face Sword", sprite: "sword5", price: 300 },
+        { name: "Iron Hunter Sword", sprite: "sword6", price: 300 },
+        { name: "Emerald Edge", sprite: "sword7", price: 300 },
+        { name: "Blazing Flame Sword", sprite: "sword8", price: 300 },
+        { name: "Obsidian Cleaver", sprite: "sword9", price: 300 },
+        { name: "Frostbite Sword", sprite: "sword10", price: 300 },
+
+    ];
+    let scrollY = 0;
+    const scrollGroup = add([pos(0, 0)]);
+    const cardWidth = Math.min(width() * 0.85, 400); // max 400px, 85% on mobile
+    const xPos = (width() - cardWidth) / 2;
+
+
+    swords.forEach((sword, i) => {
+        const y = 140 + i * 130; // Adds 100px top padding
+
+        const baseY = y + scrollY;
+
+        scrollGroup.add([
+            rect(cardWidth, 110, { radius: 12 }),
+            pos(xPos, baseY),
+            color(40, 40, 60),
+        ]);
+
+        scrollGroup.add([
+            text(`${sword.name} - $${sword.price}`, { size: 18 }),
+            pos(xPos + 20, baseY + 10),
+            color(255, 255, 255),
+        ]);
+
+        scrollGroup.add([
+            sprite(sword.sprite),
+            pos(xPos + 20, baseY + 40),
+            scale(0.08),
+        ]);
+
+        const isOwned = ownedSwords.includes(sword.sprite);
+        const isSelected = selectedSword === sword.sprite;
+        const btnText = isSelected ? "Selected" : isOwned ? "Select" : "Buy";
+
+        const btn = scrollGroup.add([
+            rect(80, 30, { radius: 6 }),
+            pos(xPos + cardWidth - 100, baseY + 60),
+            color(
+                isSelected ? rgb(0.3, 0.3, 0.3) :
+                    isOwned ? rgb(0.2, 0.7, 1) :
+                        rgb(0.2, 0.8, 0.2)
+            ),
+            area(),
+            "shopBtn",
+            {
+                sword,
+                owned: isOwned,
+                selected: isSelected,
+                label: null,
+            },
+        ]);
+
+        const label = scrollGroup.add([
+            text(btnText, { size: 14 }),
+            pos(xPos + cardWidth - 90, baseY + 68),
+            color(255, 255, 255),
+        ]);
+
+        if (!isSelected) {
+            btn.onClick(() => {
+                if (!btn.owned) {
+                    if (moneyValue >= sword.price) {
+                        moneyValue -= sword.price;
+                        moneyText.text = moneyValue.toString();
+                        play("upgrage");
+                        localStorage.setItem("Money", moneyValue.toString());
+                        ownedSwords.push(sword.sprite);
+                        localStorage.setItem("ownedSwords", JSON.stringify(ownedSwords));
+                    } else {
+                        play("Notupgrage")
+                        add([
+                            text("Not enough money!", { size: 16 }),
+                            pos(center().x, height() - 40),
+                            anchor("center"),
+                            color(255, 0, 0),
+                            lifespan(2),
+                        ]);
+                        return;
+                    }
+                }
+
+                selectedSword = sword.sprite;
+                localStorage.setItem("selectedSword", selectedSword);
+
+                go("shop");
+            });
+        }
+    });
+    // Add scroll clamping logic
+    const cardHeight = 130;
+    const topPadding = 140;
+    const totalHeight = swords.length * cardHeight + topPadding;
+    const maxScroll = Math.max(0, totalHeight - height() + 40);
+    function clamp(value, min, max) {
+        return Math.max(min, Math.min(max, value));
+    }
+    onUpdate(() => {
+        scrollY = clamp(scrollY, 0, maxScroll);
+        scrollGroup.pos.y = -scrollY;
+    });
+    onKeyDown("down", () => {
+        scrollY += 10;
+    });
+
+    onKeyDown("up", () => {
+        scrollY -= 10;
+    });
+    onTouchMove((touch) => {
+        scrollY -= touch.delta.y;
+    });
+
+    onScroll((delta) => {
+        scrollY += delta.y * 1;
+    });
+
+    // Back button
+    const backBtn = add([
+        text("← Back", { size: 24 }),
+        pos(30, height() - 50),
+        area(),
+    ]);
+
+    backBtn.onClick(() => {
+        go("start");
+    });
+});
 
 window.addEventListener("resize", () => {
     go("start");
