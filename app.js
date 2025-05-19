@@ -788,7 +788,25 @@ scene("shop", () => {
     onKeyDown("up", () => {
         scrollY -= 10;
     });
+    let isTouching = false;
+    let lastTouchY = 0;
 
+    onTouchStart((pos) => {
+        isTouching = true;
+        lastTouchY = pos.y;
+    });
+
+    onTouchMove((pos) => {
+        if (isTouching) {
+            let deltaY = pos.y - lastTouchY;
+            scrollY -= deltaY; // Subtract to match expected scroll direction
+            lastTouchY = pos.y;
+        }
+    });
+
+    onTouchEnd(() => {
+        isTouching = false;
+    });
     onScroll((delta) => {
         scrollY += delta.y * 1;
     });
