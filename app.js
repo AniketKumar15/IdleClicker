@@ -788,9 +788,6 @@ scene("shop", () => {
     onKeyDown("up", () => {
         scrollY -= 10;
     });
-    onTouchMove((touch) => {
-        scrollY -= touch.delta.y;
-    });
 
     onScroll((delta) => {
         scrollY += delta.y * 1;
