@@ -653,15 +653,17 @@ scene("shop", () => {
     ]);
 
     add([
-        rect(width(), 80),
+        rect(width(), 100),
         pos(0, 0),
         color(20, 20, 40),
         z(10),
     ]);
-    const titleSize = Math.max(20, Math.min(40, width() / 12));
+    const isMobile = /Mobi|Android/i.test(navigator.userAgent);
+    const titleSize = isMobile ? 20 : Math.min(40, width() / 12);
+
     add([
-        text("Sword Skins Shop", { size: 20 }),
-        pos(center().x, 40),
+        text("Sword Skins Shop", { size: titleSize }),
+        pos(center().x, 80),
         anchor("center"),
         z(20),
     ]);
