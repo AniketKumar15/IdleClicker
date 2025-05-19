@@ -658,8 +658,9 @@ scene("shop", () => {
         color(20, 20, 40),
         z(10),
     ]);
+    const titleSize = Math.max(20, Math.min(40, width() / 12));
     add([
-        text("Sword Skins Shop", { size: 40 }),
+        text("Sword Skins Shop", { size: 20 }),
         pos(center().x, 40),
         anchor("center"),
         z(20),
